@@ -2,7 +2,7 @@
 
 CUMT教务系统模拟登录，代码对post数据进行rsa加密后提交到服务器端
 
-import login即可调用模拟登录
+import login后继承httpmthd父类，依次调用函数获取cookie后即可使用子类self.sessions进行后续操作
 
 脚本中含有成绩获取代码
 
