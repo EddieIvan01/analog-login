@@ -11,6 +11,7 @@ import getpass
 import sys
 
 class httpmthd():
+
     sessions = requests.Session()
     time = int(time.time())
 
@@ -21,28 +22,27 @@ class httpmthd():
     def reflush_time(self):
         self.time = int(time.time())
         
-    def get_public(self):                       #获得rsa公钥json保存在pub字典中
+    def get_public(self):                      
         url = 'http://202.119.206.62/jwglxt/xtgl/login_getPublicKey.html?time='+str(self.time)
         r = self.sessions.get(url)
         self.pub = r.json()
 
-    def get_csrftoken(self):                    #提取token
+    def get_csrftoken(self):                    
         url = 'http://202.119.206.62/jwglxt/xtgl/login_slogin.html?language=zh_CN&_t='+str(self.time)
         r = self.sessions.get(url)
         r.encoding = r.apparent_encoding
         soup = BeautifulSoup(r.text,'html.parser')
         self.token = soup.find('input',attrs={'id':'csrftoken'}).attrs['value']
 
-    def process_public(self,str):               #处理密码,rsa加密
-        a = HB64()
-        self.exponent = a.b642hex(self.pub['exponent'])           #将json中的base64加密公钥解密
-        self.modulus = a.b642hex(self.pub['modulus'])
+    def process_public(self, str):               
+        self.exponent = HB64().b642hex(self.pub['exponent'])   
+        self.modulus = HB64().b642hex(self.pub['modulus'])        
         rsa = RSAJS.RSAKey()
-        rsa.setPublic(self.modulus, self.exponent)                          #rsa加密
+        rsa.setPublic(self.modulus, self.exponent)                         
         cry_data = rsa.encrypt(str)
-        return a.hex2b64(cry_data)                                  #加密后的数据进行base64加密
+        return HB64().hex2b64(cry_data)
 
-    def post_data(self):                        #post数据
+    def post_data(self):                   
         try:
             url = 'http://202.119.206.62/jwglxt/xtgl/login_slogin.html'
             header = {
@@ -59,15 +59,15 @@ class httpmthd():
             }
             self.header = header 
             data = {
-                'csrftoken':self.token,
-                'mm':self.process_public(self.passwd),             #对密码进行加密
-                'mm':self.process_public(self.passwd),             #post的data数据有两个相同mm字段
-                'yhm':self.user
+                'csrftoken': self.token,
+                'mm': self.process_public(self.passwd),            
+                'mm': self.process_public(self.passwd),            
+                'yhm': self.user
             }
-            self.req = self.sessions.post(url,headers = header,data = data)
+            self.req = self.sessions.post(url, headers = header, data = data)
             self.cookie = self.req.request.headers['cookie']
             ppot = r'用户名或密码不正确'
-            if re.findall(ppot,self.req.text):
+            if re.findall(ppot, self.req.text):
                 print('用户名或密码错误,请查验..')
                 sys.exit()
         except:
@@ -75,10 +75,12 @@ class httpmthd():
             sys.exit()
 
 class get_grades(httpmthd):
-    def __init__(self,year,term):
+
+    def __init__(self,user, passwd, year="none", term="none"):
+        super().__init__(user, passwd)
         self.year = year
         self.term = term
-        self.url1 = 'http://202.119.206.62/jwglxt/cjcx/cjcx_cxDgXscj.html?gnmkdm=N305005&layout=default&su='+cumt_login.user        
+        self.url1 = 'http://202.119.206.62/jwglxt/cjcx/cjcx_cxDgXscj.html?gnmkdm=N305005&layout=default&su='+user        
         self.url2 = 'http://202.119.206.62/jwglxt/cjcx/cjcx_cxDgXscj.html?doType=query&gnmkdm=N305005'
 
     def welcome(self):
@@ -108,8 +110,8 @@ class get_grades(httpmthd):
                     'xnm':self.year,
                     'xqm':self.term
                     }
-            req_1 = httpmthd.sessions.post(self.url1,data = data,headers = cumt_login.header)
-            req_2 = httpmthd.sessions.post(self.url2,data = data , headers = cumt_login.header)
+            req_1 = self.sessions.post(self.url1, data = data, headers = self.header)
+            req_2 = self.sessions.post(self.url2, data = data, headers = self.header)
             self.req_2 = req_2.json()
         except:
             print('获取失败,请重试...')
@@ -145,16 +147,15 @@ if __name__ == '__main__':
     print('')
     print('                                                       ————Made By Eddie_Ivan')
     print('*************************************************************************************')
-    user = 12
-    passwd = 2
-
+    user = 1
+    passwd = 1
     while type(user)!=str or type(passwd)!=str: 
         user = input('请输入学号:').strip()
         passwd = getpass.getpass('请输入密码(密码不回显,输入完回车即可):') .strip()
-    cumt_login = httpmthd(str(user),str(passwd))
-    cumt_login.get_public()
-    cumt_login.get_csrftoken()
-    cumt_login.post_data()
+    cumt_grades = get_grades(str(user), str(passwd))
+    cumt_grades.get_public()
+    cumt_grades.get_csrftoken()
+    cumt_grades.post_data()
     while True:
         year = 1
         term = 1        
@@ -168,7 +169,8 @@ if __name__ == '__main__':
         else:
             print('输入有误,请重试...')
             sys.exit()
-        cumt_grades = get_grades(str(year),str(term))
+        cumt_grades.year = year
+        cumt_grades.term = term
         cumt_grades.post_gradedata()
         cumt_grades.welcome()
         cumt_grades.print_geades()
