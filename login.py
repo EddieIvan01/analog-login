@@ -10,14 +10,14 @@ import json
 import getpass
 import sys
 
-class httpmthd():
+class Loginer():
 
     sessions = requests.Session()
     time = int(time.time())
 
-    def __init__(self,user,passwd):                       
-        self.user = str(user).encode("utf8").decode("utf8")
-        self.passwd = str(passwd).encode("utf8").decode("utf8")
+    def __init__(self, user, passwd):                       
+        self.user = str(user)
+        self.passwd = str(passwd)
     
     def reflush_time(self):
         self.time = int(time.time())
@@ -31,8 +31,8 @@ class httpmthd():
         url = 'http://202.119.206.62/jwglxt/xtgl/login_slogin.html?language=zh_CN&_t='+str(self.time)
         r = self.sessions.get(url)
         r.encoding = r.apparent_encoding
-        soup = BeautifulSoup(r.text,'html.parser')
-        self.token = soup.find('input',attrs={'id':'csrftoken'}).attrs['value']
+        soup = BeautifulSoup(r.text, 'html.parser')
+        self.token = soup.find('input', attrs={'id': 'csrftoken'}).attrs['value']
 
     def process_public(self, str):               
         self.exponent = HB64().b642hex(self.pub['exponent'])   
@@ -74,9 +74,9 @@ class httpmthd():
             print('登录失败,请检查网络配置或检查账号密码...')
             sys.exit()
 
-class get_grades(httpmthd):
+class Grades(Loginer):
 
-    def __init__(self,user, passwd, year="none", term="none"):
+    def __init__(self, user, passwd, year="none", term="none"):
         super().__init__(user, passwd)
         self.year = year
         self.term = term
@@ -127,13 +127,13 @@ class get_grades(httpmthd):
             print(plt.format('课程','成绩','绩点','教师',chr(12288)))
             print('--------------------------------------------------------------------------------')
             for i in self.req_2['items']:
-                print(plt.format(i['kcmc'],i['bfzcj'],i['jd'],i['jsxm'],chr(12288)))
+                print(plt.format(i['kcmc'], i['bfzcj'], i['jd'], i['jsxm'], chr(12288)))
                 if i['bfzcj'] < 60:
                     gk +=1
                 zkm += 1
             print('--------------------------------------------------------------------------------')
             print('')
-            print('通过科目数:{}{}'.format(zkm-gk,'门'))
+            print('通过科目数:{}{}'.format(zkm-gk, '门'))
             print('挂科科目数:'+str(gk)+'门')
             print('')
             print('')
@@ -152,7 +152,7 @@ if __name__ == '__main__':
     while type(user)!=str or type(passwd)!=str: 
         user = input('请输入学号:').strip()
         passwd = getpass.getpass('请输入密码(密码不回显,输入完回车即可):') .strip()
-    cumt_grades = get_grades(str(user), str(passwd))
+    cumt_grades = Grades(str(user), str(passwd))
     cumt_grades.get_public()
     cumt_grades.get_csrftoken()
     cumt_grades.post_data()
