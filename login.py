@@ -10,6 +10,7 @@ import json
 import getpass
 import sys
 
+
 class Loginer():
 
     sessions = requests.Session()
@@ -74,6 +75,7 @@ class Loginer():
             print('登录失败,请检查网络配置或检查账号密码...')
             sys.exit()
 
+            
 class Grades(Loginer):
 
     def __init__(self, user, passwd, year="none", term="none"):
