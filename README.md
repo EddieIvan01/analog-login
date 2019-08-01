@@ -11,8 +11,8 @@ import login后继承Loginer父类，依次调用函数获取cookie后即可使�
 
 ## 2019/8/1
 
-因项目需要重写Go版本登录代码, 用法同Python库，登录后直接调用`Loginer.S` 因静态语言类型精度问题，用32 bytes一组的循环big integer运算生成RSA公钥
+因项目需要实现了Go版本登录代码, 用法同Python库，登录后直接调用`Loginer.S`。因静态语言类型精度问题，Go的实现版本中用32 bytes一组的循环big integer运算生成RSA公钥
 
-至于原来的Python代码，越看越觉得like piece of shit :) 其实自己实现`hex_base64`的那个大数RSA库不是必需的，只是我写该库的时候太菜不知如何解决而已
+至于原来的Python代码，越看越觉得like piece of shit :) 其实自己实现的`hex_base64`和那个大数RSA库都不是必需的，只是我写该库的时候太菜不知如何解决而已
 
 但没什么大BUG也不想重写了，唯一需要注意的是，当用该库进行多用户登录时需修改requests.Session为实例成员
